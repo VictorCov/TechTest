@@ -93,16 +93,16 @@ public class OrderService {
         ops.increment(retryKey)
                 .flatMap(retries -> {
                     if (retries <= MAX_RETRY_ATTEMPTS) {
-                        // Calcular el tiempo de espera exponencial basado en el número de reintentos
+                        // Calculate the exponential backoff time based on the number of retries
                         long backOff = (long) Math.pow(2, retries) * 1000; // 1s, 2s, 4s, etc.
                         return Mono.delay(Duration.ofMillis(backOff))
-                                .then(reProcessOrder(order, retries)); // Reintenta el procesamiento del pedido
+                                .then(reProcessOrder(order, retries)); // Retry order processing
                     } else {
-                        // Si se alcanzó el número máximo de reintentos, marca el pedido como fallido
+                        // If the maximum number of retries is reached, mark the order as failed
                         return markOrderAsFailed(order);
                     }
                 })
-                .doOnError(e -> logError(order, e)) // Registra el error en caso de fallo
+                .doOnError(e -> logError(order, e)) // Log the error in case of failure
                 .onErrorResume(e -> {
                     // Handle the error and prevent it from being dropped
                     log.error("Error processing retries for order: {}. Error: {}", order.getOrderId(), e.getMessage());
@@ -112,18 +112,16 @@ public class OrderService {
     }
 
     private Mono<Void> markOrderAsFailed(Order order) {
-        // Lógica para marcar el pedido como fallido (ej. guardarlo en un log o base de datos)
-        log.error("Max retry attempts ({}) reached for order: {}",MAX_RETRY_ATTEMPTS, order.getOrderId());
+        log.error("Max retry attempts ({}) reached for order: {}", MAX_RETRY_ATTEMPTS, order.getOrderId());
         return Mono.empty();
     }
 
     private void logError(Order order, Throwable e) {
-        // Lógica para registrar el error
         log.error("Error processing order: {}, Error: {}", order.getOrderId(), e.getMessage());
     }
 
-     private Mono<Void> reProcessOrder(Order order, Long retries) {
-         log.info("Retrying order: {}, time:{}", order.getOrderId(), retries);
-         return processOrderLogic(order); // Call processOrderLogic for reprocessing
+    private Mono<Void> reProcessOrder(Order order, Long retries) {
+        log.info("Retrying order: {}, time:{}", order.getOrderId(), retries);
+        return processOrderLogic(order); // Call processOrderLogic for reprocessing
     }
 }

@@ -61,8 +61,6 @@ public class OrderServiceTest {
 
     }
 
-    // Tests for processOrder(Order order)
-
     @Test
     public void testProcessOrder_LockAcquiredSuccessfully() throws InterruptedException {
         // Mock successful lock acquisition
@@ -114,8 +112,6 @@ public class OrderServiceTest {
         verify(lock, never()).unlock();
         assertTrue(Thread.currentThread().isInterrupted());
     }
-
-    // Tests for processOrderLogic(Order order)
 
     @Test
     public void testProcessOrderLogic_Successful() {

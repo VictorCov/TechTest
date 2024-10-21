@@ -22,17 +22,14 @@ public class OrderConsumer {
         if (order != null && isValidOrder(order)) {
             orderService.processOrder(order);
         } else {
-            // Log discarded message due to invalid JSON format
             log.warn("Discarded invalid message: {}", message);
         }
     }
 
     private Order parseMessage(String message) {
         try {
-            // Deserializa el mensaje JSON a un objeto Order
             return gson.fromJson(message, Order.class);
         } catch (JsonSyntaxException e) {
-            // Manejo de error si el mensaje no tiene un formato JSON válido
             throw new IllegalArgumentException("Invalid JSON format for Order: " + message, e);
         }
     }

@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Service
 public class ClientService {
-    private final WebClient webClient= WebClient.create("http://localhost:8082/clients");
+    private final WebClient webClient = WebClient.create("http://localhost:8082/clients");
 
 
     public Mono<Order> validateClientInOrder(Order order) {
@@ -21,19 +21,16 @@ public class ClientService {
         return webClient.get()
                 .uri("/{id}", customerId)
                 .exchangeToMono(response -> {
-                    // Handle status codes explicitly
                     if (response.statusCode().is4xxClientError()) {
                         log.warn("Client not found with ID: {}", customerId);
                         return Mono.error(new ClientNotFoundException("Client not found with ID: " + customerId));
                     }
                     return response.bodyToMono(Client.class)
                             .flatMap(client -> {
-                                // Check if the client is inactive
                                 if (!client.isActive()) {
                                     log.warn("Client with ID: {} is inactive", customerId);
                                     return Mono.error(new ClientInactiveException("Client with ID: " + customerId + " is inactive"));
                                 }
-                                // Log successful validation of active client
                                 log.info("Client found and active for ID: {}", customerId);
                                 return Mono.empty(); // No body needed, just checking existence
                             });
